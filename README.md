@@ -600,10 +600,23 @@ The project uses **Hilt** for dependency injection with the following key module
 - **ViewModelModule** – ViewModel factory injections  
 
 ---
+## 📱 Mobile Screenshots
 
----
-## 📊 Architecture Flowchart
-![Architecture Flowchart](https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/flow_chart.png)
+Get a quick look at the app's interface and features.
+
+<div align="center">
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/a.jpeg" width="30%" style="margin: 10px;" />
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/b.jpeg" width="30%" style="margin: 10px;" />
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/c.jpeg" width="30%" style="margin: 10px;" />
+  <br>
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/d.jpeg" width="30%" style="margin: 10px;" />
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/e.jpeg" width="30%" style="margin: 10px;" />
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/f.jpeg" width="30%" style="margin: 10px;" />
+  <br>
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/g.jpeg" width="30%" style="margin: 10px;" />
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/h.jpeg" width="30%" style="margin: 10px;" />
+  <img src="https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/i.jpeg" width="30%" style="margin: 10px;" />
+</div>
 ---
 
 ## 🚀 Getting Started
