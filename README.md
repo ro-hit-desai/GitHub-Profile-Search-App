@@ -26,23 +26,83 @@ A modern Android application built with **Kotlin** and **Jetpack Compose** that 
 - **State Management** – ViewModel + StateFlow  
 - **Single Activity Architecture** – Activity only for UI-related logic  
 
-### Tech Stack
-- **Language**: Kotlin  
-- **UI Framework**: Jetpack Compose  
-- **Networking**: Retrofit + Coroutines  
-- **Database**: Room  
-- **DI**: Hilt  
-- **Navigation**: Compose Navigation  
-- **Theming**: Material Design 3  
-
 ---
 
+### Tech Stack
+
+|      Layer               |     Technology      |
+|--------------------------|---------------------|
+| **Language**             | Kotlin + Coroutines |
+| **UI Framework**         | Jetpack Compose     |
+| **Navigation**           | Compose Navigation  |
+| **Networking**           | Retrofit + OkHttp   |
+| **Database**             | Room + Paging 3     |
+| **Dependency Injection** | Hilt                |
+| **Theming**              | Material Design 3   |
+| **Build System**         | Gradle KTS          |
+
+
+---
 ## 📱 API Integration
 
 ### GitHub API Endpoint
 ```http
 GET https://api.github.com/search/repositories?q=language:swift&sort=stars&order=desc
 ```
+---
+
+### GitHub REST API
+```http
+GET https://api.github.com/search/repositories
+```
+Query Parameters:
+- q={query}
+- sort=stars
+- order=desc
+- per_page=20
+- page={page}
+
+---
+
+### Response Schema
+
+```kotlin
+data class SearchResponse(
+    @SerializedName("total_count") val totalCount: Int,
+    @SerializedName("incomplete_results") val incompleteResults: Boolean,
+    @SerializedName("items") val items: List<GHRepo>
+)
+```
+
+```kotlin
+@Entity(tableName = "repositories")
+data class GHRepo(
+    @PrimaryKey
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("html_url") val repoURL: String,
+    // Flatten owner properties
+    @ColumnInfo(name = "owner_login")
+    @SerializedName("owner.login") val ownerLogin: String,
+    @ColumnInfo(name = "owner_avatar_url")
+    @SerializedName("owner.avatar_url") val ownerAvatarUrl: String? = null,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("stargazers_count") val stars: Int = 0,
+    @SerializedName("forks_count") val forks: Int = 0,
+    @SerializedName("language") val language: String? = null,
+    @SerializedName("updated_at") val updatedAt: String? = null
+)
+```
+
+```kotlin
+@Serializable
+data class Owner(
+    val login: String,
+    val avatar_url: String
+)
+
+```
+---
 
 ### API Response Structure
 The API returns a paginated list of repositories with the following key fields used in the app:
@@ -51,25 +111,130 @@ The API returns a paginated list of repositories with the following key fields u
 {
 "total_count": 1486427,
 "incomplete_results": false,
-"items": []
+"items": [
+            {
+
+            }
+         ]
 }
 
 ```
 ---
 
-## 📦 Data Model
+### 🗄️ Caching Strategy
+
+- **Multi-layer Cache** – Combines in-memory and disk-based persistence for faster data access.
+- **Smart Invalidation** – Updates cache intelligently using time-based rules and event-driven triggers.
+- **Offline-First** – Ensures seamless access to cached data when offline.
+- **Efficient Queries** – Optimized Room DAOs with proper indexing for faster data retrieval.
+
+
+---
+
+### Repository Implementation
 
 ```kotlin
-data class GHRepo(
-    val id: Long,
-    val name: String,
-    @SerializedName("html_url") val repoURL: String,
-    val owner: Owner
-)
+class GitHubRepository @Inject constructor(
+    private val networkService: NetworkService,
+    private val repoDao: RepoDao
+) {
+    suspend fun getUserRepositories(username: String): List<GHRepo> {
+        val networkResult = networkService.fetchUserRepositories(username)
 
-data class Owner(
-    val login: String
-)
+        return if (networkResult.isSuccess) {
+            val repos = networkResult.getOrThrow()
+            repoDao.deleteRepositoriesByUser(username)
+            repoDao.insertRepositories(repos)
+            repos
+        } else {
+            repoDao.getRepositoriesByUser(username)
+        }
+    }
+
+    suspend fun searchRepositories(query: String): List<GHRepo> {
+        val networkResult = networkService.searchRepositories(query)
+
+        return if (networkResult.isSuccess) {
+            val repos = networkResult.getOrThrow()
+            repoDao.insertRepositories(repos)
+            repos
+        } else {
+            repoDao.searchRepositories(query)
+        }
+    }
+}
+```
+
+---
+
+---
+
+### 🔧 Dependency Injection
+Hilt Modules
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+    private const val BASE_URL = "https://api.github.com/"
+
+    @Singleton
+    @Provides
+    fun provideOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideGitHubApiService(retrofit: Retrofit): GitHubApiService {
+        return retrofit.create(GitHubApiService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideNetworkService(apiService: GitHubApiService): NetworkService {
+        return NetworkService(apiService)
+    }
+
+    @Singleton
+    @Provides
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "github_repo_db"
+        ).build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideRepoDao(appDatabase: AppDatabase) = appDatabase.repoDao()
+
+    @Singleton
+    @Provides
+    fun provideGitHubRepository(
+        networkService: NetworkService,
+        repoDao: RepoDao
+    ): GitHubRepository {
+        return GitHubRepository(networkService, repoDao)
+    }
+}
 ```
 
 ---
@@ -97,8 +262,34 @@ app/
 ## 🔧 Core Components
 Network Service
 ```kotlin
-class NetworkService {
-    suspend fun fetchRepositories(): Result<List<GHRepo>>
+class NetworkService @Inject constructor(
+    private val apiService: GitHubApiService
+) {
+    suspend fun fetchUserRepositories(username: String): Result<List<GHRepo>> {
+        return try {
+            val response = apiService.getUserRepositories(username)
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: emptyList())
+            } else {
+                Result.failure(Exception("Failed to fetch repositories: ${response.code()} - ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun searchRepositories(query: String): Result<List<GHRepo>> {
+        return try {
+            val response = apiService.searchRepositories(query)
+            if (response.isSuccessful) {
+                Result.success(response.body()?.items ?: emptyList())
+            } else {
+                Result.failure(Exception("Failed to search repositories: ${response.code()} - ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
  
 ```
