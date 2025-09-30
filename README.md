@@ -601,6 +601,11 @@ The project uses **Hilt** for dependency injection with the following key module
 
 ---
 
+---
+## 📊 Architecture Flowchart
+![Architecture Flowchart](https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/flow_chart.png)
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
