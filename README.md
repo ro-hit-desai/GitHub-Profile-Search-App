@@ -16,6 +16,10 @@ A modern Android application built with **Kotlin** and **Jetpack Compose** that 
 - **Dependency Injection** – Hilt for clean architecture  
 
 ---
+## 📊 Architecture Flowchart
+![Architecture Flowchart](https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/flow_chart.png)
+---
+
 
 ## 🛠️ Technical Implementation
 
