@@ -683,7 +683,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Rohit Desai**  
 📧 Email: rht9808@gmail.com  
 📱 Phone: +91 9730959808  
-💼 LinkedIn: [Rohit Desai](https://www.linkedin.com/in/rohit-desai)  
+💼 LinkedIn: [Rohit Desai](https://www.linkedin.com/in/rohith-desai/)  
 
 <div align="center">
 ⭐️ If you find this project helpful, don't forget to give it a star! ⭐️  
