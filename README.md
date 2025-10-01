@@ -20,6 +20,14 @@ A modern Android application built with **Kotlin** and **Jetpack Compose** that 
 ![Architecture Flowchart](https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/flow_chart.png)
 ---
 
+
+---
+## 📊 MindMap 
+![Architecture Flowchart](https://github.com/ro-hit-desai/GitHub-Profile-Search-App/blob/main/Snaps/mindmap.jpeg)
+---
+
+
+
 ## 🛠️ Technical Implementation
 
 ### Architecture & Patterns
